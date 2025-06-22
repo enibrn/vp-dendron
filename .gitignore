@@ -6,9 +6,6 @@ out
 dist
 *.tgz
 
-# playground (not archived)
-playground/
-
 # code coverage
 coverage
 *.lcov
