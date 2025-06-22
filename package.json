@@ -2,9 +2,7 @@
   "name": "vitron",
   "private": true,
   "workspaces": [
-    "packages/*"
-  ],
-  "devDependencies": {
-    "vitepress": "^1.6.3"
-  }
+    "packages/*",
+    "playground/*"
+  ]
 }

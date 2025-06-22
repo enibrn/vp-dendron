@@ -4,3 +4,7 @@ build
 seeds
 .next
 pods/service-connections
+.vitepress/cache
+.vitepress/dist
+.vitepress/test/manual/temp
+.vitepress/redirects-data.json

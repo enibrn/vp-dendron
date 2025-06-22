@@ -1,7 +1,16 @@
 {
+  "name": "my-vault",
+  "type": "module",
   "scripts": {
     "dev": "vitepress dev",
     "build": "vitepress build",
     "preview": "vitepress preview"
+  },
+  "devDependencies": {
+    "vitepress": "2.0.0-alpha.6"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "markdown-it-async": "^2.2.0"
   }
 }
