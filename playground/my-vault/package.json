@@ -7,10 +7,12 @@
     "preview": "vitepress preview"
   },
   "devDependencies": {
-    "vitepress": "2.0.0-alpha.6"
+    "vitepress": "2.0.0-alpha.6",
+    "@types/bun": "latest"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
-    "markdown-it-async": "^2.2.0"
+    "markdown-it-async": "^2.2.0",
+    "markdown-it-wikilinks": "^1.4.0"
   }
 }
