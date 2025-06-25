@@ -47,7 +47,7 @@ async function readAndParseNoteFile(filePath: string): Promise<{ data: any, erro
 }
 
 // Validates required fields
-function validateNoteData(data: any): string[] {
+export function validateNoteData(data: any): string[] {
   // Array to collect possible errors
   const errors: string[] = [];
   const prefix = 'Field missing: ';
@@ -62,7 +62,7 @@ function validateNoteData(data: any): string[] {
 }
 
 // Parses computed data from frontmatter and file name
-function parseNoteData(data: any, key: string): { parsedData: ParsedNoteData | null, errors: string[] } {
+export function parseNoteData(data: any, key: string): { parsedData: ParsedNoteData | null, errors: string[] } {
   // Array to collect possible errors
   const errors: string[] = [];
   let parsedData: ParsedNoteData | null = null;
