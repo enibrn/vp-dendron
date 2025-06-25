@@ -22,4 +22,21 @@ export type DendronNoteItem = {
 export type NoteItemsResult = {
   noteItems: DendronNoteItem[];
   noteItemErrors: { [key: string]: string[]; };
+};export type NavItem = {
+  text: string;
+  link?: string;
+  items?: NavItem[];
 };
+export type SidebarItem = {
+  key: string;
+  text: string;
+  link?: string;
+  items?: SidebarItem[];
+  collapsed?: boolean;
+};
+export type HomeCard = {
+  title: string;
+  details: string;
+  link: string;
+};
+
