@@ -34,11 +34,14 @@ function joinPath(...parts: string[]): string {
 }
 
 // Reads and parses the file, returns data and errors
-async function readAndParseNoteFile(filePath: string): Promise<{ data: any, errors: string[] }> {
+export async function readAndParseNoteFile(
+  filePath: string,
+  bunFile: (path: string) => { text: () => Promise<string> } = (path) => Bun.file(path)
+): Promise<{ data: any, errors: string[] }> {
   const errors: string[] = [];
   let data: any = {};
   try {
-    const fileContent = await Bun.file(filePath).text();
+    const fileContent = await bunFile(filePath).text();
     ({ data } = matter(fileContent));
   } catch (e) {
     errors.push('Error when reading file ' + (e instanceof Error ? e.message : String(e)));
@@ -92,9 +95,12 @@ export function parseNoteData(data: any, key: string): { parsedData: ParsedNoteD
   return { parsedData, errors };
 }
 
-export async function getItemsFromDendronNoteFiles(): Promise<NoteItemsResult> {
+export async function getItemsFromDendronNoteFiles(
+  readdirImpl: (path: string) => Promise<string[]> = readdir,
+  bunFile: (path: string) => { text: () => Promise<string> } = (path) => Bun.file(path)
+): Promise<NoteItemsResult> {
   // Read file list in notes folder
-  const files = await readdir(notesPath);
+  const files = await readdirImpl(notesPath);
 
   // Final result object
   const noteItemsResult: NoteItemsResult = {
@@ -111,7 +117,7 @@ export async function getItemsFromDendronNoteFiles(): Promise<NoteItemsResult> {
     const filePath = joinPath(notesPath, file);
 
     // Step 1: Read and parse file
-    const { data, errors: readErrors } = await readAndParseNoteFile(filePath);
+    const { data, errors: readErrors } = await readAndParseNoteFile(filePath, bunFile);
     const errors: string[] = [...readErrors];
 
     // Step 2: Validate required fields
