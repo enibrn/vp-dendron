@@ -1,32 +1,8 @@
 import matter from 'gray-matter';
 import { readdir } from "node:fs/promises";
+import { ParsedNoteData, NoteItemsResult, DendronNoteData } from './types';
 
 export const notesPath = 'notes';
-
-export type DendronNoteData = {
-  id: string;
-  title: string;
-  created: string;
-  updated: string;
-}
-
-export type ParsedNoteData = {
-  side: boolean;
-  order: number;
-  level: number;
-  createdDate: Date;
-  updatedDate: Date;
-  relativeFilePath: string;
-};
-
-export type DendronNoteItem = {
-  key: string;
-} & DendronNoteData & ParsedNoteData;
-
-export type NoteItemsResult = {
-  noteItems: DendronNoteItem[];
-  noteItemErrors: { [key: string]: string[] };
-};
 
 // Utility to join paths (since Bun does not have 'path' like Node)
 function joinPath(...parts: string[]): string {
