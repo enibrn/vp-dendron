@@ -1,42 +1,24 @@
-
-export type DendronNoteData = {
-  id: string;
+export type FileParsed = {
+  uid: string;
   title: string;
-  created: string;
-  updated: string;
-};
+  createdTimestamp: string;
+  updatedTimestamp: string;
 
-export type ParsedNoteData = {
   side: boolean;
   order: number;
   level: number;
   createdDate: Date;
   updatedDate: Date;
-  relativeFilePath: string;
-};
-
-export type DendronNoteItem = {
-  key: string;
-} & DendronNoteData & ParsedNoteData;
-
-export type NoteItemsResult = {
-  noteItems: DendronNoteItem[];
-  noteItemErrors: { [key: string]: string[]; };
-};export type NavItem = {
-  text: string;
-  link?: string;
-  items?: NavItem[];
-};
-export type SidebarItem = {
-  key: string;
-  text: string;
-  link?: string;
-  items?: SidebarItem[];
-  collapsed?: boolean;
-};
-export type HomeCard = {
-  title: string;
-  details: string;
   link: string;
 };
 
+export type FileResult = {
+  fileName: string;
+  filePath: string;
+} & (FileResultData | FileResultError);
+
+export type FileResultData = { status: 'parsed'; data: FileParsed };
+export type FileResultError = { status: 'error'; errors: string[] };
+
+export type ReadFileFn = (path: string) => { text: () => Promise<string>; };
+export type ReadDirFn = (path: string) => Promise<string[]>;
