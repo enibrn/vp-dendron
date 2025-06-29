@@ -1,5 +1,12 @@
 import matter from 'gray-matter';
-import type { FileResult, FileResultData, FileResultError, FileParsed, ReadDirFn, ReadFileFn } from './types';
+import type {
+  FileResult,
+  FileResultData,
+  FileResultError,
+  FileParsed,
+  ReadDirFn,
+  ReadFileFn
+} from './types';
 
 export interface IFilesParser {
   parseFiles(): Promise<FileResult[]>;
@@ -74,7 +81,8 @@ export class DendronFilesParser implements IFilesParser {
     };
   }
 
-  private async parseFileData(frontmatter: any, fileName: string): Promise<FileResultData | FileResultError> {
+  private async parseFileData(frontmatter: any, fileName: string)
+    : Promise<FileResultData | FileResultError> {
     const errors: string[] = [];
 
     const createdDate = new Date(frontmatter.created);
@@ -101,7 +109,7 @@ export class DendronFilesParser implements IFilesParser {
         createdDate,
         updatedDate,
         link: '/' + fileName
-      }
+      } as FileParsed
     };
   }
 
