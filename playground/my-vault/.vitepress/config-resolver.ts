@@ -1,6 +1,6 @@
 import { VPNode } from './common';
 import { INodesImporter } from './nodes-importer';
-import type { DefaultTheme } from 'vitepress'
+import type { DefaultTheme } from 'vitepress';
 
 export class ConfigResolver {
   public readonly nav: DefaultTheme.NavItem[];
@@ -27,6 +27,14 @@ export class ConfigResolver {
 
   private async resolveNodes() {
     const parsedNodes: VPNode.Result[] = await this.nodesImporter.do();
+
+    const failedNodes: VPNode.Failed[] = parsedNodes.filter(VPNode.isError);
+    if (failedNodes.length > 0) {
+      failedNodes.forEach(node => {
+        console.error(`Error in node ${node.fileName}:`, node.errors.join(', '));
+      });
+    }
+
     const successfulNodes: VPNode.Imported[] = parsedNodes.filter(VPNode.isSuccess);
 
     if (successfulNodes.length === 0) {
@@ -51,7 +59,7 @@ export class ConfigResolver {
     breadcrumbs: string[]
   ): DefaultTheme.NavItem {
     breadcrumbs.push(node.title);
-    this.srcExclude.push(node.filePath); // exclude from vitepress files to render
+    this.srcExclude.push(node.fileNameWithExt); // exclude from vitepress files to render
     const childNodes: VPNode.Imported[] = this.getChildsOrdered(node);
 
     if (node.docEntrypoint !== false) {
@@ -128,7 +136,7 @@ export class ConfigResolver {
       });
 
       // exclude from vitepress files to render
-      this.srcExclude.push(node.filePath);
+      this.srcExclude.push(node.fileNameWithExt);
     }
 
     return result;

@@ -4,8 +4,5 @@
   "workspaces": [
     "packages/*",
     "playground/*"
-  ],
-  "dependencies": {
-    "vitest": "^3.2.4"
-  }
+  ]
 }

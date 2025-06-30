@@ -1,7 +1,7 @@
 export namespace VPNode {
   type Base = {
-    fileName: string;
-    filePath: string;
+    fileName: string; // "cs.web-dev.jamstack"
+    fileNameWithExt: string; // "cs.web-dev.jamstack.md"
   };
 
   export type Imported = Base & {
@@ -22,7 +22,11 @@ export namespace VPNode {
     collapseNonLandingChildren: boolean;
   }
 
-  export type LeafLandingPoint = 'first' | 'last';
+  const LeafLandingPointValues = <const>['first', 'last'];
+  export type LeafLandingPoint = typeof LeafLandingPointValues[number];
+  export function isLeafLandingPoint(value: string): value is LeafLandingPoint {
+    return LeafLandingPointValues.includes(value as LeafLandingPoint);
+  }
 
   export type Leaf = Imported & {
     breadcrumbs: string[];
@@ -42,6 +46,3 @@ export namespace VPNode {
     return 'errors' in node;
   }
 }
-
-export type ReadFileFn = (path: string) => { text: () => Promise<string>; };
-export type ReadDirFn = (path: string) => Promise<string[]>;
