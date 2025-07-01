@@ -30,17 +30,24 @@ export class DendronNodesImporter implements INodesImporter {
   }
 
   private async importNodeFromFile(fileNameWithExt: string): Promise<VPNode.Result> {
+    // Generate base node information
     const fileName: string = basename(fileNameWithExt, extname(fileNameWithExt));
     const filePath: string = path.join(this.nodesPath, fileNameWithExt);
+    const lastPart: string = fileName.split('.').pop() || '';
+    const baseNode: VPNode.Base = {
+      fileName,
+      fileNameWithExt,
+      filePath,
+      lastPart};
 
-    // Read the file
+    // Read the file and extract front matter
     let data: any = {};
     try {
       const fileContent = await readFile(filePath, 'utf-8');
       ({ data } = matter(fileContent));
     } catch (e) {
       const fileReadErrorMessage: string = 'Error when reading file ' + (e instanceof Error ? e.message : String(e));
-      return { fileName, fileNameWithExt, errors: [fileReadErrorMessage] } as VPNode.Failed;
+      return { ...baseNode, errors: [fileReadErrorMessage] } as VPNode.Failed;
     }
 
     // Validate required fields and collect errors
@@ -72,14 +79,12 @@ export class DendronNodesImporter implements INodesImporter {
     }
 
     if (errors.length > 0) {
-      return { fileName, fileNameWithExt, errors } as VPNode.Failed;
+      return { ...baseNode, errors } as VPNode.Failed;
     }
 
-    // Step 3: Parse file data
+    // return the imported node object
     return {
-      fileName,
-      fileNameWithExt,
-      filePath,
+      ...baseNode,
       uid: data.id,
       title: data.title,
       createdTimestamp: data.created,

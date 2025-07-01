@@ -3,6 +3,7 @@ export namespace VPNode {
     fileName: string; // "cs.web-dev.jamstack"
     fileNameWithExt: string; // "cs.web-dev.jamstack.md"
     filePath: string; // "/path/to/cs.web-dev.jamstack.md"
+    lastPart: string; // "jamstack"
   };
 
   export type Imported = Base & {
