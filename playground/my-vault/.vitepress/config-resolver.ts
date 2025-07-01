@@ -112,7 +112,7 @@ export class ConfigResolver {
       const landingPoint = node.docEntrypoint.leafLandingPoint;
       const sidebarItems = [] as DefaultTheme.SidebarItem[];
       childNodes.forEach(childNode => {
-        sidebarItems.push(this.traverseAfterDocEntry(childNode, node.fileName, landingPoint, breadcrumbs));
+        sidebarItems.push(this.traverseAfterDocEntry(childNode, node.fileName, landingPoint, [...breadcrumbs]));
       });
       this.sidebar[node.fileName] = sidebarItems;
 
@@ -141,7 +141,7 @@ export class ConfigResolver {
     } else {
       const items: DefaultTheme.NavItem[] = [];
       childNodes.forEach(childNode => {
-        items.push(this.traverseUntilDocEntry(childNode, breadcrumbs));
+        items.push(this.traverseUntilDocEntry(childNode, [...breadcrumbs]));
       });
 
       return {
@@ -158,15 +158,13 @@ export class ConfigResolver {
     breadcrumbs: string[]
   ): DefaultTheme.SidebarItem {
     const result = { key: node.fileName, text: node.title } as DefaultTheme.SidebarItem;
-    breadcrumbs.push(node.title);
-
     const childItems: VPNode.Imported[] = this.getChildsOrdered(node);
 
     if (childItems.length == 0) {
       // If the node has no children, it is a leaf node
       result.link = node.link;
       this.linksVocabulary[node.fileName] = node.title;
-      this.leafNodes.push({ ...node, breadcrumbs: breadcrumbs });
+      this.leafNodes.push({ ...node, breadcrumbs: [...breadcrumbs] });
 
       // if landingPoint is 'last', always overwrite the link so the last one remains
       // if landingPoint is 'first', only set if there is no link yet, so it wont be overwritten and the first one remains
@@ -175,10 +173,12 @@ export class ConfigResolver {
 
       this.redirects[node.uid] = `${this.baseUrl}${node.fileName}`;
     } else {
+      breadcrumbs.push(node.title);
       // If the node still has children, we need to traverse them
       result.items = [] as DefaultTheme.SidebarItem[];
       childItems.forEach(childItem => {
-        result.items?.push(this.traverseAfterDocEntry(childItem, navKey, landingPoint, breadcrumbs));
+        result.items?.push(
+          this.traverseAfterDocEntry(childItem, navKey, landingPoint, [...breadcrumbs]));
       });
 
       // exclude from vitepress files to render
