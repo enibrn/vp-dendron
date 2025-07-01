@@ -42,6 +42,52 @@ export class ConfigResolver {
     }
 
     this.nodes.push(...successfulNodes);
+    this.createVirtualNodes();
+  }
+
+  private createVirtualNodes(): void {
+    const existingPaths = new Set(this.nodes.map(node => node.fileName));
+    const virtualNodesToCreate: VPNode.Imported[] = [];
+
+    // Analyze all existing nodes to find missing intermediate levels
+    for (const node of this.nodes) {
+      const parts = node.fileName.split('.');
+      
+      // Check each possible intermediate path
+      for (let i = 1; i < parts.length; i++) {
+        const intermediatePath = parts.slice(0, i + 1).join('.');
+        
+        // If this intermediate path doesn't exist, we need to create a virtual node
+        if (!existingPaths.has(intermediatePath)) {
+          const lastPart = parts[i];
+          const level = i + 1;
+          
+          // Create virtual node
+          const virtualNode: VPNode.Imported = {
+            fileName: intermediatePath,
+            fileNameWithExt: `${intermediatePath}.md`,
+            filePath: `/virtual/${intermediatePath}.md`,
+            lastPart: lastPart,
+            uid: `virtual-${intermediatePath}`,
+            title: lastPart,
+            createdTimestamp: new Date().toISOString(),
+            updatedTimestamp: new Date().toISOString(),
+            docEntrypoint: false,
+            order: 0,
+            level: level,
+            createdDate: new Date(),
+            updatedDate: new Date(),
+            link: `/${intermediatePath}`
+          };
+
+          virtualNodesToCreate.push(virtualNode);
+          existingPaths.add(intermediatePath);
+        }
+      }
+    }
+
+    // Add virtual nodes to the main nodes array
+    this.nodes.push(...virtualNodesToCreate);
   }
 
   private traverseItemsHierarchically() {
