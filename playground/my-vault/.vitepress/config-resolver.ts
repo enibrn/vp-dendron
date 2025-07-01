@@ -3,8 +3,8 @@ import { INodesImporter } from './nodes-importer';
 import type { DefaultTheme } from 'vitepress';
 
 export class ConfigResolver {
-  public readonly nav: DefaultTheme.NavItem[];
-  public readonly sidebar: DefaultTheme.Sidebar;
+  public readonly nav: DefaultTheme.NavItem[]= [];
+  public readonly sidebar: DefaultTheme.Sidebar = {};
   public readonly linksVocabulary: Record<string, string> = {};
   public readonly redirects: Record<string, string> = {};
   public readonly leafNodes: VPNode.Leaf[] = [];
@@ -62,7 +62,7 @@ export class ConfigResolver {
     this.srcExclude.push(node.fileNameWithExt); // exclude from vitepress files to render
     const childNodes: VPNode.Imported[] = this.getChildsOrdered(node);
 
-    if (node.docEntrypoint !== false) {
+    if (node.docEntrypoint) {
       const landingPoint = node.docEntrypoint.leafLandingPoint;
       const sidebarItems = [] as DefaultTheme.SidebarItem[];
       childNodes.forEach(childNode => {

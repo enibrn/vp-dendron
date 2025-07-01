@@ -1,7 +1,8 @@
 export namespace VPNode {
-  type Base = {
+  export type Base = {
     fileName: string; // "cs.web-dev.jamstack"
     fileNameWithExt: string; // "cs.web-dev.jamstack.md"
+    filePath: string; // "/path/to/cs.web-dev.jamstack.md"
   };
 
   export type Imported = Base & {

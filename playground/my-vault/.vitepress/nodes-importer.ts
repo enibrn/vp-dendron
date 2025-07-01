@@ -18,9 +18,10 @@ export class DendronNodesImporter implements INodesImporter {
     const results: VPNode.Result[] = [];
 
     // Read all md files in the nodes directory except 'root.md'
+    const filesToExclude: string[] = ['root.md', 'index.md', 'README.md'];
     const files: string[] = await readdir(this.nodesPath);
     const markdownFiles: string[] = files
-      .filter(file => extname(file) === '.md' && file !== 'root.md');
+      .filter(file => extname(file) === '.md' && !filesToExclude.includes(file));
     for (const file of markdownFiles) {
       results.push(await this.importNodeFromFile(file));
     }
@@ -28,10 +29,9 @@ export class DendronNodesImporter implements INodesImporter {
     return results;
   }
 
-  private async importNodeFromFile(file: string): Promise<VPNode.Result> {
-    const fileNameWithExt: string = basename(file);
-    const fileName: string = basename(file, extname(file));
-    const filePath: string = path.join(this.nodesPath, file);
+  private async importNodeFromFile(fileNameWithExt: string): Promise<VPNode.Result> {
+    const fileName: string = basename(fileNameWithExt, extname(fileNameWithExt));
+    const filePath: string = path.join(this.nodesPath, fileNameWithExt);
 
     // Read the file
     let data: any = {};
@@ -79,6 +79,7 @@ export class DendronNodesImporter implements INodesImporter {
     return {
       fileName,
       fileNameWithExt,
+      filePath,
       uid: data.id,
       title: data.title,
       createdTimestamp: data.created,

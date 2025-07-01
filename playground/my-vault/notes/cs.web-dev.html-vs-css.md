@@ -2,7 +2,7 @@
 id: 6mkzpo5c2ds3lwvhtxqms08
 title: HTML Vs CSS
 desc: ''
-updated: 1691240807935
+updated: 1751365180139
 created: 1691236229370
 tags:
   - html
@@ -12,7 +12,7 @@ tags:
 vpd:
   ogdate: '2022-09-09'
 ---
-![Image](/assets/laptop.png)
+![Image](./assets/images/laptop.png)
 
 HTML is not a programming language. HTML is a markup language that is used to structure content on the web. CSS, on the other hand, is a style sheet language that is used to style HTML elements selectively. CSS can’t function alone; it depends on a markup language like HTML.
 

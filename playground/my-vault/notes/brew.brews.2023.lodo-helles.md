@@ -2,7 +2,7 @@
 id: 5fkcplnoduvr4hq07wzgtjy
 title: LODO Helles
 desc: 'Crafting a Homemade Helles Beer with Low Oxygen Brewing, Spunding Fermentation, and Closed-Loop Pressure Transfer'
-updated: 1691240698077
+updated: 1751365155021
 created: 1691236229371
 tags:
   - lager
@@ -11,7 +11,7 @@ tags:
 vpd:
   ogdate: '2023-05-15'
 ---
-![Homemade Helles Beer](/assets/helles.png)
+![Homemade Helles Beer](./assets/images/helles.png)
 
 Welcome, fellow homebrewers and beer enthusiasts! Today, we embark on an exciting journey of crafting a delightful homemade Helles beer using advanced techniques such as Low Oxygen Brewing, Spunding Fermentation, and Closed-Loop Pressure Transfer. These methods will help us achieve a crisp and clean lager, reminiscent of the traditional German Helles style. So, let's dive into the process, from the original recipe to the much-awaited moment of tasting.
 
