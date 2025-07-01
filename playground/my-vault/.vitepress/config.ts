@@ -27,6 +27,16 @@ await writeMyFile('linksVocabulary', configResolver.linksVocabulary);
 await writeMyFile('redirects', configResolver.redirects);
 await writeMyFile('leafNodes', configResolver.leafNodes);
 
+const bigFile = {
+  nodes,
+  nav: configResolver.nav,
+  sidebar: configResolver.sidebar,
+  linksVocabulary: configResolver.linksVocabulary,
+  redirects: configResolver.redirects,
+  leafNodes: configResolver.leafNodes
+};
+await writeMyFile('bigFile', bigFile);
+
 
 export default defineConfig({
   srcDir,
