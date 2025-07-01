@@ -2,8 +2,12 @@
 id: pnk0jqy96274fl9z5exjblr
 title: Dependency Injection
 desc: Explanation of the concept of Dependency Injection
-updated: 1743410661839
+updated: 1751375569526
 created: 1743281333601
+tags:
+  - modularity
+vpd:
+  ogdate: '2022-12-23'
 ---
 Dependency Injection (DI) is a design pattern that promotes the separation between the creation of dependencies and their usage. Essentially, components do not create their own dependencies, but receive them from the outside, thus improving modularity and testability.
 
