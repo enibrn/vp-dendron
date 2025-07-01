@@ -1,23 +1,39 @@
 export namespace VPNode {
   export type Base = {
     fileName: string; // "cs.web-dev.jamstack"
-    fileNameWithExt: string; // "cs.web-dev.jamstack.md"
-    filePath: string; // "/path/to/cs.web-dev.jamstack.md"
     lastPart: string; // "jamstack"
   };
 
-  export type Imported = Base & {
+  export type Physical = {
+    fileNameWithExt: string; // "cs.web-dev.jamstack.md"
+    filePath: string; // "/path/to/cs.web-dev.jamstack.md"
+  }
+
+  export type Failed = Base & Physical & {
+    errors: string[];
+  };
+
+  export type Virtual = Base & {
     uid: string;
     title: string;
+    order: number;
+    level: number;
+    link: string; // "/cs.web-dev.jamstack"
+  };
+
+  export type Imported = Virtual & Physical & {
     createdTimestamp: string;
     updatedTimestamp: string;
     docEntrypoint: DocEntryInfo | false;
-    order: number;
-    level: number;
     createdDate: Date;
     updatedDate: Date;
-    link: string;
   };
+
+  export type Result = Imported | Failed | Virtual;
+
+  export type Leaf = Imported & {
+    breadcrumbs: string[];
+  }
 
   export type DocEntryInfo = {
     leafLandingPoint: LeafLandingPoint;
@@ -29,16 +45,6 @@ export namespace VPNode {
   export function isLeafLandingPoint(value: string): value is LeafLandingPoint {
     return LeafLandingPointValues.includes(value as LeafLandingPoint);
   }
-
-  export type Leaf = Imported & {
-    breadcrumbs: string[];
-  }
-
-  export type Failed = Base & {
-    errors: string[];
-  };
-
-  export type Result = Imported | Failed;
 
   export function isSuccess(node: Result): node is Imported {
     return 'uid' in node;
