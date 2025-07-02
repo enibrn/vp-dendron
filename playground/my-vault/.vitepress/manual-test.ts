@@ -22,9 +22,18 @@ export async function doManualTest(srcDir: string, base: string) {
   await writeMyFile('linksVocabulary', configResolver.linksVocabulary);
   await writeMyFile('leafNodes', configResolver.leafNodes);
 
-  const themeProvider = new VPTheme.ThemeProvider(base, configResolver.leafNodes);
+  const themeProvider = new VPTheme.ThemeProvider({
+    baseUrl: base,
+    blog: {
+      lastCreatedItemsToTake: 4,
+      lastUpdatedItemsToTake: 4,
+      maxExcerptLength: 200
+    }
+  }, configResolver.leafNodes);
   await themeProvider.resolveThemeData();
   await writeMyFile('redirects', themeProvider.redirects);
+  await writeMyFile('newlyCreatedBlogPosts', themeProvider.newlyCreatedBlogPosts);
+  await writeMyFile('newlyUpdatedBlogPosts', themeProvider.newlyUpdatedBlogPosts);
 
   const bigFile = {
     nodes,
@@ -32,7 +41,9 @@ export async function doManualTest(srcDir: string, base: string) {
     sidebar: configResolver.sidebar,
     linksVocabulary: configResolver.linksVocabulary,
     redirects: themeProvider.redirects,
-    leafNodes: configResolver.leafNodes
+    leafNodes: configResolver.leafNodes,
+    newlyCreatedBlogPosts: themeProvider.newlyCreatedBlogPosts,
+    newlyUpdatedBlogPosts: themeProvider.newlyUpdatedBlogPosts
   };
   await writeMyFile('bigFile', bigFile);
 }

@@ -14,7 +14,7 @@ const configurationBuilder = new ConfigBuilder(dendronNodeProcessor);
 await configurationBuilder.resolveConfig();
 
 // If you want to run manual test, uncomment the line below
-// await doManualTest(srcDir, base);
+await doManualTest(srcDir, base);
 
 export default defineConfig({
   srcDir,
