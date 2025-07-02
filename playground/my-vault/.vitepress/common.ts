@@ -9,10 +9,6 @@ export namespace VPNode {
     filePath: string; // "/path/to/cs.web-dev.jamstack.md"
   }
 
-  export type Failed = Base & Physical & {
-    errors: string[];
-  };
-
   type Common = Base & {
     uid: string;
     title: string;
@@ -20,13 +16,17 @@ export namespace VPNode {
     level: number;
   }
 
+  export type Failed = Base & Physical & {
+    errors: string[];
+  };
+
   export type Virtual = Common & {
     docEntrypoint: false;
   };
 
   export type Imported = Common & Physical & {
-    createdTimestamp: string;
-    updatedTimestamp: string;
+    createdTimestamp: number; // Unix timestamp
+    updatedTimestamp: number; // Unix timestamp
     docEntrypoint: DocEntryInfo | false;
     createdDate: Date;
     updatedDate: Date;
@@ -35,8 +35,11 @@ export namespace VPNode {
 
   export type ImportResult = Imported | Failed;
   export type Resolved = Imported | Virtual;
-  export type Leaf = Resolved & {
+  export type Leaf = Imported & {
     breadcrumbs: string[];
+  }
+  export type BlogPost = Leaf & {
+    excerpt: string;
   }
 
   export type DocEntryInfo = {

@@ -2,7 +2,7 @@ import { join } from 'path';
 import { writeFile, mkdir } from 'fs/promises';
 import { DendronNodesProcessor } from './nodes-processor';
 import { ConfigBuilder } from './config-builder';
-import {ThemeProvider} from './theme-provider';
+import {VPTheme} from './theme-provider';
 
 export async function doManualTest(srcDir: string, base: string) {
   const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
@@ -22,7 +22,7 @@ export async function doManualTest(srcDir: string, base: string) {
   await writeMyFile('linksVocabulary', configResolver.linksVocabulary);
   await writeMyFile('leafNodes', configResolver.leafNodes);
 
-  const themeProvider = new ThemeProvider(base, configResolver.leafNodes);
+  const themeProvider = new VPTheme.ThemeProvider(base, configResolver.leafNodes);
   await themeProvider.resolveThemeData();
   await writeMyFile('redirects', themeProvider.redirects);
 
