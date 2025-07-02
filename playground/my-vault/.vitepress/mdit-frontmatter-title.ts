@@ -1,43 +1,45 @@
 // mdit-frontmatter-title.ts
 import matter from 'gray-matter';
-import type MarkdownIt from 'markdown-it';
 
 interface FrontmatterTitleOptions {
   exclude?: string[]; // Array of paths to exclude
   titleKey?: string;  // Name of the title property in frontmatter
 }
 
-// Define the correct plugin type for VitePress
-type MarkdownItPlugin = (md: MarkdownIt, options?: FrontmatterTitleOptions) => void;
-
-const frontmatterTitlePlugin: MarkdownItPlugin = (md, options = {}) => {
-  const defaultRender = md.render;
+// VitePress 2.0 plugin - simplified approach focusing only on renderAsync
+const frontmatterTitlePlugin = (md: any, options: FrontmatterTitleOptions = {}) => {
   const exclude = options.exclude || [];
   const titleKey = options.titleKey || 'title';
 
-  function processSource(src: string, env: any): string {
-    // Exclude paths if specified
-    if (env?.path && exclude.some((p) => env.path.includes(p))) {
-      return defaultRender.call(md, src, env);
-    }
+  // VitePress 2.0 uses renderAsync - override only this method as recommended
+  if (md.renderAsync) {
+    const originalRenderAsync = md.renderAsync.bind(md);
+    
+    md.renderAsync = async (src: string, env: any) => {
+      // Exclude paths if specified
+      if (env?.path && exclude.some((p) => env.path.includes(p))) {
+        return await originalRenderAsync(src, env);
+      }
 
-    const { data, content } = matter(src);
-    const title = data[titleKey];
-    let newContent = content;
-    if (title) {
-      const titleHeader = `# ${title}\n\n`;
-      newContent = titleHeader + content;
-    }
-    // Recombine frontmatter data and content
-    src = matter.stringify(newContent, data);
-    return defaultRender.call(md, src, env);
-  }
-
-  md.render = (src, env) => processSource(src, env);
-  
-  // Type assertion for renderAsync as VitePress extends MarkdownIt with this method
-  if ('renderAsync' in md && typeof (md as any).renderAsync === 'function') {
-    (md as any).renderAsync = async (src: string, env: any) => processSource(src, env);
+      const { data, content } = matter(src);
+      const title = data[titleKey];
+      
+      let processedSrc = src;
+      if (title) {
+        // Check if content already starts with an H1 title
+        const trimmedContent = content.trim();
+        const hasH1Title = trimmedContent.startsWith('# ');
+        
+        // Only add title if content doesn't already have an H1
+        if (!hasH1Title) {
+          const titleHeader = `# ${title}\n\n`;
+          const newContent = titleHeader + content;
+          processedSrc = matter.stringify(newContent, data);
+        }
+      }
+      
+      return await originalRenderAsync(processedSrc, env);
+    };
   }
 };
 
