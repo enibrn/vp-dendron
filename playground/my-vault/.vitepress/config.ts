@@ -1,6 +1,5 @@
 import { defineConfig } from 'vitepress'
-import { DendronNodesProcessor } from './nodes-processor';
-import { ConfigBuilder } from './config-builder';
+import { VPLogic } from './vp-logic';
 import markdownItWikilinksFn from 'markdown-it-wikilinks';
 import frontmatterTitlePlugin from './mdit-frontmatter-title';
 import { doManualTest } from './manual-test';
@@ -9,8 +8,8 @@ import { doManualTest } from './manual-test';
 // relative to root folder containing .vitepress folder
 const srcDir: string = 'notes';
 const base: string = '/my-vault/';
-const dendronNodeProcessor = new DendronNodesProcessor(srcDir);
-const configurationBuilder = new ConfigBuilder(dendronNodeProcessor);
+const dendronNodeProcessor = new VPLogic.DendronNodesProcessor(srcDir);
+const configurationBuilder = new VPLogic.ConfigBuilder(dendronNodeProcessor);
 await configurationBuilder.resolveConfig();
 
 // If you want to run manual test, uncomment the line below

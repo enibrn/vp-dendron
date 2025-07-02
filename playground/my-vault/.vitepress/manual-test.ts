@@ -1,8 +1,7 @@
 import { join } from 'path';
 import { writeFile, mkdir } from 'fs/promises';
-import { DendronNodesProcessor } from './nodes-processor';
-import { ConfigBuilder } from './config-builder';
-import {VPTheme} from './theme-provider';
+import { VPLogic } from './vp-logic';
+import {VPTheme} from './vp-theme';
 
 export async function doManualTest(srcDir: string, base: string) {
   const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
@@ -11,11 +10,11 @@ export async function doManualTest(srcDir: string, base: string) {
   const writeMyFile = async (fileName: string, content: any) =>
     await writeFile(join(outputDir, `${fileName}.json`), JSON.stringify(content, null, 2), 'utf-8');
 
-  const nodesImporter = new DendronNodesProcessor(srcDir);
+  const nodesImporter = new VPLogic.DendronNodesProcessor(srcDir);
   const nodes = await nodesImporter.importNodesFromFiles();
   await writeMyFile('nodes', nodes);
 
-  const configResolver = new ConfigBuilder(nodesImporter);
+  const configResolver = new VPLogic.ConfigBuilder(nodesImporter);
   await configResolver.resolveConfig();
   await writeMyFile('nav', configResolver.nav);
   await writeMyFile('sidebar', configResolver.sidebar);

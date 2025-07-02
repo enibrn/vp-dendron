@@ -1,4 +1,4 @@
-import { VPNode } from './common';
+import { VPNode } from './vp-node';
 import matter from 'gray-matter';
 import removeMd from 'remove-markdown';
 import { readFile } from 'fs/promises';
