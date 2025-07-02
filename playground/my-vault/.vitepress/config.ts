@@ -38,7 +38,7 @@ export default defineConfig({
           configurationBuilder.linksVocabulary[label] ?? label
       };
       md.use(markdownItWikilinksFn(options));
-      // md.use(frontmatterTitlePlugin);
+      md.use(frontmatterTitlePlugin);
     }
   },
   srcExclude: configurationBuilder.srcExclude

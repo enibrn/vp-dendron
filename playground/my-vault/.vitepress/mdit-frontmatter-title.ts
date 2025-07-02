@@ -1,13 +1,16 @@
 // mdit-frontmatter-title.ts
 import matter from 'gray-matter';
-import type { PluginWithOptions } from 'markdown-it-async';
+import type MarkdownIt from 'markdown-it';
 
 interface FrontmatterTitleOptions {
   exclude?: string[]; // Array of paths to exclude
   titleKey?: string;  // Name of the title property in frontmatter
 }
 
-const frontmatterTitlePlugin: PluginWithOptions<FrontmatterTitleOptions> = (md, options = {}) => {
+// Define the correct plugin type for VitePress
+type MarkdownItPlugin = (md: MarkdownIt, options?: FrontmatterTitleOptions) => void;
+
+const frontmatterTitlePlugin: MarkdownItPlugin = (md, options = {}) => {
   const defaultRender = md.render;
   const exclude = options.exclude || [];
   const titleKey = options.titleKey || 'title';
@@ -31,7 +34,11 @@ const frontmatterTitlePlugin: PluginWithOptions<FrontmatterTitleOptions> = (md, 
   }
 
   md.render = (src, env) => processSource(src, env);
-  md.renderAsync = async (src, env) => processSource(src, env);
+  
+  // Type assertion for renderAsync as VitePress extends MarkdownIt with this method
+  if ('renderAsync' in md && typeof (md as any).renderAsync === 'function') {
+    (md as any).renderAsync = async (src: string, env: any) => processSource(src, env);
+  }
 };
 
 export default frontmatterTitlePlugin;
