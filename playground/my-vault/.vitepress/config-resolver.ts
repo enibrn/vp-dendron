@@ -11,7 +11,7 @@ export class ConfigResolver {
 
   private readonly nodesImporter: INodesImporter;
   private readonly baseUrl: string;
-  private readonly nodes: VPNode.Imported[] = [];
+  private readonly nodes: VPNode.Resolved[] = [];
   private readonly sidebarLeafLinks: Record<string, string> = {};
   private readonly srcExclude: string[] = [];
 
@@ -26,7 +26,7 @@ export class ConfigResolver {
   }
 
   private async resolveNodes() {
-    const parsedNodes: VPNode.Result[] = await this.nodesImporter.do();
+    const parsedNodes: VPNode.ImportResult[] = await this.nodesImporter.importNodesFromFiles();
 
     const failedNodes: VPNode.Failed[] = parsedNodes.filter(VPNode.isError);
     if (failedNodes.length > 0) {
@@ -35,59 +35,17 @@ export class ConfigResolver {
       });
     }
 
-    const successfulNodes: VPNode.Imported[] = parsedNodes.filter(VPNode.isSuccess);
+    const successfulNodes: VPNode.Imported[] = parsedNodes.filter(VPNode.isImported);
 
     if (successfulNodes.length === 0) {
       throw new Error('No valid nodes found to build the configuration.');
     }
 
     this.nodes.push(...successfulNodes);
-    this.createVirtualNodes();
-  }
-
-  private createVirtualNodes(): void {
-    const existingPaths = new Set(this.nodes.map(node => node.fileName));
-    const virtualNodesToCreate: VPNode.Imported[] = [];
-
-    // Analyze all existing nodes to find missing intermediate levels
-    for (const node of this.nodes) {
-      const parts = node.fileName.split('.');
-      
-      // Check each possible intermediate path
-      for (let i = 1; i < parts.length; i++) {
-        const intermediatePath = parts.slice(0, i + 1).join('.');
-        
-        // If this intermediate path doesn't exist, we need to create a virtual node
-        if (!existingPaths.has(intermediatePath)) {
-          const lastPart = parts[i];
-          const level = i + 1;
-          
-          // Create virtual node
-          const virtualNode: VPNode.Imported = {
-            fileName: intermediatePath,
-            fileNameWithExt: `${intermediatePath}.md`,
-            filePath: `/virtual/${intermediatePath}.md`,
-            lastPart: lastPart,
-            uid: `virtual-${intermediatePath}`,
-            title: lastPart,
-            createdTimestamp: new Date().toISOString(),
-            updatedTimestamp: new Date().toISOString(),
-            docEntrypoint: false,
-            order: 0,
-            level: level,
-            createdDate: new Date(),
-            updatedDate: new Date(),
-            link: `/${intermediatePath}`
-          };
-
-          virtualNodesToCreate.push(virtualNode);
-          existingPaths.add(intermediatePath);
-        }
-      }
-    }
-
-    // Add virtual nodes to the main nodes array
-    this.nodes.push(...virtualNodesToCreate);
+    
+    // Create virtual nodes using the nodes importer
+    const virtualNodes = this.nodesImporter.createVirtualNodes(successfulNodes);
+    this.nodes.push(...virtualNodes);
   }
 
   private traverseItemsHierarchically() {
@@ -101,12 +59,15 @@ export class ConfigResolver {
   }
 
   private traverseUntilDocEntry(
-    node: VPNode.Imported,
+    node: VPNode.Resolved,
     breadcrumbs: string[]
   ): DefaultTheme.NavItem {
     breadcrumbs.push(node.title);
-    this.srcExclude.push(node.fileNameWithExt); // exclude from vitepress files to render
-    const childNodes: VPNode.Imported[] = this.getChildsOrdered(node);
+
+    if (VPNode.isImported(node))
+      this.srcExclude.push(node.fileNameWithExt);
+
+    const childNodes: VPNode.Resolved[] = this.getChildsOrdered(node);
 
     if (node.docEntrypoint) {
       const landingPoint = node.docEntrypoint.leafLandingPoint;
@@ -122,8 +83,8 @@ export class ConfigResolver {
       //manage the collapse of non-landing children
       if (node.docEntrypoint.collapseNonLandingChildren) {
         const nodeToExpandLink = childNodes
-          .map(x => x.link)
-          .find(x => link.startsWith(x + '.'));
+          .map(x => x.fileName)
+          .find(x => link.startsWith('/' + x + '.'));
 
         for (let sidebarItem of sidebarItems) {
           if (sidebarItem.link === nodeToExpandLink) {
@@ -152,15 +113,15 @@ export class ConfigResolver {
   }
 
   private traverseAfterDocEntry(
-    node: VPNode.Imported,
+    node: VPNode.Resolved,
     navKey: string,
     landingPoint: VPNode.LeafLandingPoint,
     breadcrumbs: string[]
   ): DefaultTheme.SidebarItem {
     const result = { key: node.fileName, text: node.title } as DefaultTheme.SidebarItem;
-    const childItems: VPNode.Imported[] = this.getChildsOrdered(node);
+    const childItems: VPNode.Resolved[] = this.getChildsOrdered(node);
 
-    if (childItems.length == 0) {
+    if (VPNode.isImported(node) && childItems.length == 0) {
       // If the node has no children, it is a leaf node
       result.link = node.link;
       this.linksVocabulary[node.fileName] = node.title;
@@ -181,14 +142,14 @@ export class ConfigResolver {
           this.traverseAfterDocEntry(childItem, navKey, landingPoint, [...breadcrumbs]));
       });
 
-      // exclude from vitepress files to render
-      this.srcExclude.push(node.fileNameWithExt);
+      if (VPNode.isImported(node))
+        this.srcExclude.push(node.fileNameWithExt);
     }
 
     return result;
   }
 
-  private getChildsOrdered(father: VPNode.Imported): VPNode.Imported[] {
+  private getChildsOrdered(father: VPNode.Resolved): VPNode.Resolved[] {
     const childs = this.nodes
       .filter(node => {
         const regex = new RegExp(`^${father.fileName}\\.([^\\.]+)$`);

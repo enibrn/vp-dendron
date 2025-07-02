@@ -1,10 +1,10 @@
 export namespace VPNode {
-  export type Base = {
+  type Base = {
     fileName: string; // "cs.web-dev.jamstack"
     lastPart: string; // "jamstack"
   };
 
-  export type Physical = {
+  type Physical = {
     fileNameWithExt: string; // "cs.web-dev.jamstack.md"
     filePath: string; // "/path/to/cs.web-dev.jamstack.md"
   }
@@ -13,25 +13,29 @@ export namespace VPNode {
     errors: string[];
   };
 
-  export type Virtual = Base & {
+  type Common = Base & {
     uid: string;
     title: string;
     order: number;
     level: number;
-    link: string; // "/cs.web-dev.jamstack"
+  }
+
+  export type Virtual = Common & {
+    docEntrypoint: false;
   };
 
-  export type Imported = Virtual & Physical & {
+  export type Imported = Common & Physical & {
     createdTimestamp: string;
     updatedTimestamp: string;
     docEntrypoint: DocEntryInfo | false;
     createdDate: Date;
     updatedDate: Date;
+    link: string; // "/cs.web-dev.jamstack"
   };
 
-  export type Result = Imported | Failed | Virtual;
-
-  export type Leaf = Imported & {
+  export type ImportResult = Imported | Failed;
+  export type Resolved = Imported | Virtual;
+  export type Leaf = Resolved & {
     breadcrumbs: string[];
   }
 
@@ -46,11 +50,11 @@ export namespace VPNode {
     return LeafLandingPointValues.includes(value as LeafLandingPoint);
   }
 
-  export function isSuccess(node: Result): node is Imported {
+  export function isImported(node: ImportResult | Resolved): node is Imported {
     return 'uid' in node;
   }
 
-  export function isError(node: Result): node is Failed {
+  export function isError(node: ImportResult): node is Failed {
     return 'errors' in node;
   }
 }

@@ -16,7 +16,7 @@ const writeMyFile = async (fileName: string, content: any) =>
   await writeFile(join(outputDir, `${fileName}.json`), JSON.stringify(content, null, 2), 'utf-8');
 
 const nodesImporter = new DendronNodesImporter(srcDir);
-const nodes = await nodesImporter.do();
+const nodes = await nodesImporter.importNodesFromFiles();
 await writeMyFile('nodes', nodes);
 
 const configResolver = new ConfigResolver(nodesImporter, base);

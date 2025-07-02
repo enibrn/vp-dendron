@@ -4,7 +4,8 @@ import { readdir, readFile } from 'fs/promises';
 import path, { basename, extname } from 'path';
 
 export interface INodesImporter {
-  do(): Promise<VPNode.Result[]>;
+  importNodesFromFiles(): Promise<VPNode.ImportResult[]>;
+  createVirtualNodes(nodes: VPNode.Imported[]): VPNode.Virtual[];
 }
 
 export class DendronNodesImporter implements INodesImporter {
@@ -14,8 +15,8 @@ export class DendronNodesImporter implements INodesImporter {
     this.nodesPath = nodesPath;
   }
 
-  public async do(): Promise<VPNode.Result[]> {
-    const results: VPNode.Result[] = [];
+  public async importNodesFromFiles(): Promise<VPNode.ImportResult[]> {
+    const results: VPNode.ImportResult[] = [];
 
     // Read all md files in the nodes directory except 'root.md'
     const filesToExclude: string[] = ['root.md', 'index.md', 'README.md'];
@@ -29,21 +30,47 @@ export class DendronNodesImporter implements INodesImporter {
     return results;
   }
 
-  private async importNodeFromFile(fileNameWithExt: string): Promise<VPNode.Result> {
-    // Generate base node information
+  public createVirtualNodes(nodes: VPNode.Imported[]): VPNode.Virtual[] {
+    const existingPaths = new Set(nodes.map(node => node.fileName));
+    const virtualNodesToCreate: VPNode.Virtual[] = [];
+
+    // Analyze all existing nodes to find missing intermediate levels
+    for (const node of nodes) {
+      const parts = node.fileName.split('.');
+      
+      // Check each possible intermediate path
+      for (let i = 1; i < parts.length; i++) {
+        const intermediatePath = parts.slice(0, i + 1).join('.');
+        
+        // If this intermediate path doesn't exist, we need to create a virtual node
+        if (!existingPaths.has(intermediatePath)) {
+          const lastPart = parts[i];
+          const level = i + 1;
+          
+          // Create virtual node
+          const virtualNode: VPNode.Virtual = {
+            fileName: intermediatePath,
+            lastPart: lastPart,
+            uid: intermediatePath,
+            title: lastPart,
+            docEntrypoint: false,
+            order: 0,
+            level: level
+          };
+
+          virtualNodesToCreate.push(virtualNode);
+          existingPaths.add(intermediatePath);
+        }
+      }
+    }
+
+    return virtualNodesToCreate;
+  }
+
+  private async importNodeFromFile(fileNameWithExt: string): Promise<VPNode.ImportResult> {
     const fileName: string = basename(fileNameWithExt, extname(fileNameWithExt));
     const lastPart: string = fileName.split('.').pop() || '';
-    const baseNode: VPNode.Base = {
-      fileName,
-      lastPart
-    };
-
-    // Generate physical node information
     const filePath: string = path.join(this.nodesPath, fileNameWithExt);
-    const physicalNode: VPNode.Physical = {
-      fileNameWithExt,
-      filePath
-    };
 
     // Read the file and extract front matter
     let data: any = {};
@@ -52,7 +79,8 @@ export class DendronNodesImporter implements INodesImporter {
       ({ data } = matter(fileContent));
     } catch (e) {
       const fileReadErrorMessage: string = 'Error when reading file ' + (e instanceof Error ? e.message : String(e));
-      return { ...baseNode, ...physicalNode, errors: [fileReadErrorMessage] } as VPNode.Failed;
+      return { fileName, lastPart, fileNameWithExt, filePath,
+        errors: [fileReadErrorMessage] } as VPNode.Failed;
     }
 
     // Validate required fields and collect errors
@@ -84,13 +112,12 @@ export class DendronNodesImporter implements INodesImporter {
     }
 
     if (errors.length > 0) {
-      return { ...baseNode, ...physicalNode, errors } as VPNode.Failed;
+      return { fileName, lastPart, fileNameWithExt, filePath, errors } as VPNode.Failed;
     }
 
     // return the imported node object
     return {
-      ...baseNode,
-      ...physicalNode,
+      fileName, lastPart, fileNameWithExt, filePath,
       uid: data.id,
       title: data.title,
       createdTimestamp: data.created,
