@@ -3,6 +3,7 @@ import { DendronNodesProcessor } from './nodes-processor';
 import { ConfigBuilder } from './config-builder';
 import markdownItWikilinksFn from 'markdown-it-wikilinks';
 import frontmatterTitlePlugin from './mdit-frontmatter-title';
+import { doManualTest } from './manual-test';
 
 // The directory where your markdown pages are stored
 // relative to root folder containing .vitepress folder
@@ -11,6 +12,9 @@ const base: string = '/my-vault/';
 const dendronNodeProcessor = new DendronNodesProcessor(srcDir);
 const configurationBuilder = new ConfigBuilder(dendronNodeProcessor);
 await configurationBuilder.resolveConfig();
+
+// If you want to run manual test, uncomment the line below
+// await doManualTest(srcDir, base);
 
 export default defineConfig({
   srcDir,

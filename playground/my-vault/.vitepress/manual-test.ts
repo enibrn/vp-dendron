@@ -4,10 +4,6 @@ import { DendronNodesProcessor } from './nodes-processor';
 import { ConfigBuilder } from './config-builder';
 import {ThemeProvider} from './theme-provider';
 
-const srcDir: string = 'notes';
-const base: string = '/my-vault/';
-await doManualTest(srcDir, base);
-
 export async function doManualTest(srcDir: string, base: string) {
   const timestamp = new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
   const outputDir = join('manual-tests', `${timestamp}`);
