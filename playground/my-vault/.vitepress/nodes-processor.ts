@@ -3,12 +3,12 @@ import { VPNode } from './common';
 import { readdir, readFile } from 'fs/promises';
 import path, { basename, extname } from 'path';
 
-export interface INodesImporter {
+export interface INodesProcessor {
   importNodesFromFiles(): Promise<VPNode.ImportResult[]>;
   createVirtualNodes(nodes: VPNode.Imported[]): VPNode.Virtual[];
 }
 
-export class DendronNodesImporter implements INodesImporter {
+export class DendronNodesProcessor implements INodesProcessor {
   private readonly nodesPath: string;
 
   constructor(nodesPath: string) {
@@ -122,7 +122,7 @@ export class DendronNodesImporter implements INodesImporter {
       title: data.title,
       createdTimestamp: data.created,
       updatedTimestamp: data.updated,
-      docEntrypoint: DendronNodesImporter.resolveDoc(data),
+      docEntrypoint: DendronNodesProcessor.resolveDoc(data),
       order: typeof data.nav_order === 'number' ? data.nav_order : 999,
       level: fileName.split('.').length,
       createdDate,

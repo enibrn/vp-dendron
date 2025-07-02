@@ -1,23 +1,20 @@
 import { VPNode } from './common';
-import { INodesImporter } from './nodes-importer';
+import { INodesProcessor } from './nodes-processor';
 import type { DefaultTheme } from 'vitepress';
 
-export class ConfigResolver {
+export class ConfigBuilder {
   public readonly nav: DefaultTheme.NavItem[]= [];
   public readonly sidebar: DefaultTheme.Sidebar = {};
   public readonly linksVocabulary: Record<string, string> = {};
-  public readonly redirects: Record<string, string> = {};
   public readonly leafNodes: VPNode.Leaf[] = [];
+  public readonly srcExclude: string[] = [];
 
-  private readonly nodesImporter: INodesImporter;
-  private readonly baseUrl: string;
+  private readonly nodesImporter: INodesProcessor;
   private readonly nodes: VPNode.Resolved[] = [];
   private readonly sidebarLeafLinks: Record<string, string> = {};
-  private readonly srcExclude: string[] = [];
 
-  constructor(fileparser: INodesImporter, baseUrl: string) {
+  constructor(fileparser: INodesProcessor) {
     this.nodesImporter = fileparser;
-    this.baseUrl = baseUrl;
   }
 
   public async resolveConfig(): Promise<void> {
@@ -131,8 +128,6 @@ export class ConfigResolver {
       // if landingPoint is 'first', only set if there is no link yet, so it wont be overwritten and the first one remains
       if (landingPoint === 'last' || !this.sidebarLeafLinks[navKey])
         this.sidebarLeafLinks[navKey] = result.link;
-
-      this.redirects[node.uid] = `${this.baseUrl}${node.fileName}`;
     } else {
       breadcrumbs.push(node.title);
       // If the node still has children, we need to traverse them
