@@ -1,28 +1,24 @@
 <template>
-  <div>
-    <!-- Show custom homepage for root route -->
-    <Index v-if="isHomePage" />
-    <!-- Show default theme layout for all other pages -->
-    <DefaultTheme.Layout v-else />
-  </div>
+  <Layout>
+    <template #aside-top>
+      <AsideTable
+        :created-timestamp="frontmatter.created"
+        :updated-timestamp="frontmatter.updated"
+        :uid="frontmatter.id"
+      />
+    </template>
+  </Layout>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue'
-import { useRoute, withBase } from 'vitepress'
-import DefaultTheme from 'vitepress/theme'
-import Index from './Index.vue'
+<script
+  setup
+  lang="ts"
+>
+import DefaultTheme from 'vitepress/theme';
+import { useData } from 'vitepress';
+import AsideTable from './components/AsideTable.vue';
 
-const route = useRoute()
+const { Layout } = DefaultTheme;
+const { frontmatter } = useData();
 
-// Check if current route is the homepage
-const isHomePage = computed(() => {
-  const homePaths = [
-    '/',
-    '/index',
-    '/index.html'
-  ];
-
-  return homePaths.some(path => route.path === withBase(path));
-})
 </script>
