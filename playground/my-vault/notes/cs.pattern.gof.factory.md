@@ -2,8 +2,8 @@
 id: c4qqh9t83k3lasdvaizegbr
 title: Factory
 desc: ''
-updated: 1743410574360
-created: 1743281657975
+updated: 1751554209971
+created: 1751554209971
 ---
 The Factory Method pattern provides an interface for creating objects in a superclass, allowing subclasses to alter the type of objects to be created. This promotes the creation of flexible and easily extensible code.
 

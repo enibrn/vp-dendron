@@ -4,11 +4,11 @@
       <tbody>
         <tr>
           <td>Created:</td>
-          <td>{{ createdDateString }}</td>
+          <td>{{ formatTimestamp(props.createdTimestamp) }}</td>
         </tr>
-        <tr>
+        <tr v-if="props.createdTimestamp !== props.updatedTimestamp">
           <td>Updated:</td>
-          <td>{{ updatedDateString }}</td>
+          <td>{{ formatTimestamp(props.updatedTimestamp) }}</td>
         </tr>
         <tr>
           <td colspan="2">
@@ -45,8 +45,5 @@ const props = defineProps({
 // todo: date based on locale, captions
 const locales = 'it-IT';
 const options = { day: '2-digit', month: '2-digit', year: 'numeric' } as Intl.DateTimeFormatOptions;
-const formatTs = (ts: string | number | Date) => new Date(ts).toLocaleDateString(locales, options);
-
-const createdDateString = computed(() => formatTs(props.createdTimestamp));
-const updatedDateString = computed(() => formatTs(props.updatedTimestamp));
+const formatTimestamp = (ts: string | number | Date) => new Date(ts).toLocaleDateString(locales, options);
 </script>
