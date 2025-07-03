@@ -24,8 +24,8 @@
   setup
   lang="ts"
 >
-import { computed } from 'vue';
 import Permalink from './Permalink.vue';
+import { useDateUtils } from '../composables';
 
 const props = defineProps({
   createdTimestamp: {
@@ -42,8 +42,5 @@ const props = defineProps({
   }
 });
 
-// todo: date based on locale, captions
-const locales = 'it-IT';
-const options = { day: '2-digit', month: '2-digit', year: 'numeric' } as Intl.DateTimeFormatOptions;
-const formatTimestamp = (ts: string | number | Date) => new Date(ts).toLocaleDateString(locales, options);
+const { formatTimestamp } = useDateUtils();
 </script>
