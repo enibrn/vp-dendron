@@ -1,19 +1,34 @@
 import { defineConfig } from 'vitepress'
 import { VPLogic } from './vp-logic';
+import { VPTheme } from './vp-theme';
 import markdownItWikilinksFn from 'markdown-it-wikilinks';
 import frontmatterTitlePlugin from './mdit-frontmatter-title';
 import { doManualTest } from './manual-test';
 
-// The directory where your markdown pages are stored
-// relative to root folder containing .vitepress folder
+// 
 const srcDir: string = 'notes';
 const base: string = '/my-vault/';
+const lastCreatedItemsToTake: number = 4;
+const lastUpdatedItemsToTake: number = 4;
+const maxExcerptLength: number = 200;
+
 const dendronNodeProcessor = new VPLogic.DendronNodesProcessor(srcDir);
-const configurationBuilder = new VPLogic.ConfigBuilder(dendronNodeProcessor);
-await configurationBuilder.resolveConfig();
+const configBuilder = new VPLogic.ConfigBuilder(dendronNodeProcessor);
+await configBuilder.resolveConfig();
+
+const themeConfig = {
+  baseUrl: base,
+  blog: {
+    lastCreatedItemsToTake,
+    lastUpdatedItemsToTake,
+    maxExcerptLength
+  }
+};
+const themeProvider = new VPTheme.ThemeProvider(themeConfig, configBuilder.leafNodes);
+await themeProvider.resolveThemeData();
 
 // If you want to run manual test, uncomment the line below
-await doManualTest(srcDir, base);
+//await doManualTest(srcDir, base);
 
 export default defineConfig({
   srcDir,
@@ -21,8 +36,8 @@ export default defineConfig({
   title: "Playground My Vault",
   description: "A VitePress site for testing Dendron nodes import",
   themeConfig: {
-    nav: configurationBuilder.nav,
-    sidebar: configurationBuilder.sidebar,
+    nav: configBuilder.nav,
+    sidebar: configBuilder.sidebar,
     search: {
       provider: 'local'
     },
@@ -34,11 +49,12 @@ export default defineConfig({
     config: (md) => {
       const options = {
         postProcessLabel: (label: string | number) =>
-          configurationBuilder.linksVocabulary[label] ?? label
+          configBuilder.linksVocabulary[label] ?? label
       };
       md.use(markdownItWikilinksFn(options));
       md.use(frontmatterTitlePlugin);
     }
   },
-  srcExclude: configurationBuilder.srcExclude
+  srcExclude: configBuilder.srcExclude,
+
 });

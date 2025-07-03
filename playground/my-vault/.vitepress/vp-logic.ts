@@ -173,7 +173,7 @@ export namespace VPLogic {
 
   export class ConfigBuilder {
     public readonly nav: DefaultTheme.NavItem[] = [];
-    public readonly sidebar: DefaultTheme.Sidebar = {};
+    public readonly sidebar: DefaultTheme.SidebarMulti = {};
     public readonly linksVocabulary: Record<string, string> = {};
     public readonly leafNodes: VPNode.Leaf[] = [];
     public readonly srcExclude: string[] = [];
