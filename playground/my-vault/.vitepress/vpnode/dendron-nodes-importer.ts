@@ -10,9 +10,9 @@ import {
   VPNodeDocEntryInfo,
   isError
 } from './types.ts';
-import { IVPNodeImporter } from './vpnode-importer.ts';
+import { INodesImporter } from './nodes-importer.ts';
 
-export class DendronVPNodeImporter implements IVPNodeImporter {
+export class DendronNodesImporter implements INodesImporter {
   private readonly nodesPath: string;
 
   constructor(nodesPath: string) {
@@ -83,7 +83,7 @@ export class DendronVPNodeImporter implements IVPNodeImporter {
       title: data.title,
       createdTimestamp: data.created,
       updatedTimestamp: data.updated,
-      docEntrypoint: DendronVPNodeImporter.resolveDoc(data),
+      docEntrypoint: DendronNodesImporter.resolveDoc(data),
       order: typeof data.nav_order === 'number' ? data.nav_order : 999,
       level: fileName.split('.').length,
       createdDate,

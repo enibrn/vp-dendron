@@ -1,5 +1,5 @@
 import { VPNodeImportResult } from './types';
 
-export interface IVPNodeImporter {
+export interface INodesImporter {
   do(): Promise<VPNodeImportResult[]>;
 }
