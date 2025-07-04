@@ -10,16 +10,16 @@ import {
   VPNodeDocEntryInfo,
   isError
 } from './types.ts';
-import { IVPNodeProcessor } from './vpnode-processor.ts';
+import { IVPNodeImporter } from './vpnode-importer.ts';
 
-export class DendronVPNodeProcessor implements IVPNodeProcessor {
+export class DendronVPNodeImporter implements IVPNodeImporter {
   private readonly nodesPath: string;
 
   constructor(nodesPath: string) {
     this.nodesPath = nodesPath;
   }
 
-  public async importNodesFromFiles(): Promise<VPNodeImportResult[]> {
+  public async do(): Promise<VPNodeImportResult[]> {
     const results: VPNodeImportResult[] = [];
     const filesToExclude: string[] = ['root.md', 'index.md', 'README.md'];
     const files: string[] = await readdir(this.nodesPath);
@@ -83,7 +83,7 @@ export class DendronVPNodeProcessor implements IVPNodeProcessor {
       title: data.title,
       createdTimestamp: data.created,
       updatedTimestamp: data.updated,
-      docEntrypoint: DendronVPNodeProcessor.resolveDoc(data),
+      docEntrypoint: DendronVPNodeImporter.resolveDoc(data),
       order: typeof data.nav_order === 'number' ? data.nav_order : 999,
       level: fileName.split('.').length,
       createdDate,

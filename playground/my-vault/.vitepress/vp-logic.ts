@@ -10,9 +10,9 @@ import {
   isError,
   VPNodeLeafLandingPoint
 } from './vpnode/types';
-import { IVPNodeProcessor } from './vpnode/vpnode-processor';
-import { DendronVPNodeProcessor } from './vpnode/dendron-vpnode-processor';
-import { VPNodeFactory } from './vpnode/vpnode-factory';
+import { IVPNodeImporter } from './vpnode/vpnode-importer';
+import { DendronVPNodeImporter } from './vpnode/dendron-vpnode-importer';
+import { createVirtualNodes } from './vpnode/vpnode-utils';
 
 export namespace VPLogic {
   export class ConfigBuilder {
@@ -22,11 +22,11 @@ export namespace VPLogic {
     public readonly leafNodes: VPNodeLeaf[] = [];
     public readonly srcExclude: string[] = [];
 
-    private readonly nodesImporter: IVPNodeProcessor;
+    private readonly nodesImporter: IVPNodeImporter;
     private readonly nodes: VPNodeResolved[] = [];
     private readonly sidebarLeafLinks: Record<string, string> = {};
 
-    constructor(fileparser: IVPNodeProcessor) {
+    constructor(fileparser: IVPNodeImporter) {
       this.nodesImporter = fileparser;
     }
 
@@ -36,7 +36,7 @@ export namespace VPLogic {
     }
 
     private async resolveNodes() {
-      const parsedNodes: VPNodeImportResult[] = await this.nodesImporter.importNodesFromFiles();
+      const parsedNodes: VPNodeImportResult[] = await this.nodesImporter.do();
 
       const failedNodes: VPNodeFailed[] = parsedNodes.filter(isError);
       if (failedNodes.length > 0) {
@@ -53,8 +53,8 @@ export namespace VPLogic {
 
       this.nodes.push(...successfulNodes);
 
-      // Crea i virtual vpnode tramite la factory
-      const virtualNodes = VPNodeFactory.createVirtualNodes(successfulNodes);
+      // Crea i virtual vpnode tramite la funzione utility
+      const virtualNodes = createVirtualNodes(successfulNodes);
       this.nodes.push(...virtualNodes);
     }
 
