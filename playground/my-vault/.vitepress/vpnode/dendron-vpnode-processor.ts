@@ -9,8 +9,8 @@ import {
   VPNodeFailed,
   VPNodeDocEntryInfo,
   isError
-} from './types';
-import { IVPNodeProcessor } from './IVPNode';
+} from './types.ts';
+import { IVPNodeProcessor } from './vpnode-processor.ts';
 
 export class DendronVPNodeProcessor implements IVPNodeProcessor {
   private readonly nodesPath: string;

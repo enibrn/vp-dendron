@@ -10,9 +10,9 @@ import {
   isError,
   VPNodeLeafLandingPoint
 } from './vpnode/types';
-import { IVPNodeProcessor } from './vpnode/IVPNode';
-import { DendronVPNodeProcessor } from './vpnode/DendronVPNode';
-import { VPNodeFactory } from './vpnode/VPNodeFactory';
+import { IVPNodeProcessor } from './vpnode/vpnode-processor';
+import { DendronVPNodeProcessor } from './vpnode/dendron-vpnode-processor';
+import { VPNodeFactory } from './vpnode/vpnode-factory';
 
 export namespace VPLogic {
   export class ConfigBuilder {
