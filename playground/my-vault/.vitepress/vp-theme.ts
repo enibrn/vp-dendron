@@ -1,7 +1,7 @@
-import { VPNode } from './vp-node';
 import matter from 'gray-matter';
 import removeMd from 'remove-markdown';
 import { readFile } from 'fs/promises';
+import { VPNodeLeaf, VPNodeBlogPost } from './vpnode/types';
 
 export namespace VPTheme {
   export type BlogConfig = {
@@ -17,13 +17,13 @@ export namespace VPTheme {
 
   export class ThemeProvider {
     public readonly redirects: Record<string, string> = {};
-    public readonly newlyCreatedBlogPosts: VPNode.BlogPost[] = [];
-    public readonly newlyUpdatedBlogPosts: VPNode.BlogPost[] = [];
+    public readonly newlyCreatedBlogPosts: VPNodeBlogPost[] = [];
+    public readonly newlyUpdatedBlogPosts: VPNodeBlogPost[] = [];
 
     private readonly config: ThemeConfig;
-    private readonly leafNodes: VPNode.Leaf[] = [];
+    private readonly leafNodes: VPNodeLeaf[] = [];
 
-    constructor(config: ThemeConfig, leafNodes: VPNode.Leaf[]) {
+    constructor(config: ThemeConfig, leafNodes: VPNodeLeaf[]) {
       this.config = config;
       this.leafNodes = leafNodes;
     }
@@ -32,11 +32,10 @@ export namespace VPTheme {
       this.populateRedirects();
       await this.fetchNewlyCreatedBlogPosts();
       await this.fetchNewlyUpdatedBlogPosts();
-
     }
 
     private async fetchNewlyCreatedBlogPosts() {
-      const promises: Promise<VPNode.BlogPost>[] = this.leafNodes
+      const promises: Promise<VPNodeBlogPost>[] = this.leafNodes
         .sort((a, b) => b.createdTimestamp - a.createdTimestamp)
         .slice(0, this.config.blog.lastCreatedItemsToTake)
         .map(async (node) => this.resolveBlogCard(node));
@@ -45,7 +44,7 @@ export namespace VPTheme {
     }
 
     private async fetchNewlyUpdatedBlogPosts() {
-      const promises: Promise<VPNode.BlogPost>[] = this.leafNodes
+      const promises: Promise<VPNodeBlogPost>[] = this.leafNodes
         .filter(x => !this.newlyCreatedBlogPosts.some(y => y.fileName === x.fileName)) //exclude newly created items
         .sort((a, b) => b.updatedTimestamp - a.updatedTimestamp)
         .slice(0, this.config.blog.lastUpdatedItemsToTake)
@@ -54,14 +53,14 @@ export namespace VPTheme {
       this.newlyUpdatedBlogPosts.push(...await Promise.all(promises));
     }
 
-    private async resolveBlogCard(node: VPNode.Leaf): Promise<VPNode.BlogPost> {
+    private async resolveBlogCard(node: VPNodeLeaf): Promise<VPNodeBlogPost> {
       const fcontent = await readFile(node.filePath, 'utf-8');
       const { content } = matter(fcontent);
       const excerpt = this.getExcerpt(content);
       return {
         ...node,
         excerpt: excerpt
-      } as VPNode.BlogPost;
+      } as VPNodeBlogPost;
     }
 
     private populateRedirects() {
@@ -82,5 +81,3 @@ export namespace VPTheme {
     }
   }
 }
-
-

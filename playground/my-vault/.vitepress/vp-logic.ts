@@ -1,188 +1,32 @@
-import matter from 'gray-matter';
-import { VPNode } from './vp-node';
-import { readdir, readFile } from 'fs/promises';
-import path, { basename, extname } from 'path';
 import type { DefaultTheme } from 'vitepress';
+import {
+  VPNodeImportResult,
+  VPNodeImported,
+  VPNodeVirtual,
+  VPNodeFailed,
+  VPNodeResolved,
+  VPNodeLeaf,
+  isImported,
+  isError,
+  VPNodeLeafLandingPoint
+} from './vpnode/types';
+import { IVPNodeProcessor } from './vpnode/IVPNode';
+import { DendronVPNodeProcessor } from './vpnode/DendronVPNode';
+import { VPNodeFactory } from './vpnode/VPNodeFactory';
 
 export namespace VPLogic {
-  export interface INodesProcessor {
-    importNodesFromFiles(): Promise<VPNode.ImportResult[]>;
-    createVirtualNodes(nodes: VPNode.Imported[]): VPNode.Virtual[];
-  }
-
-  export class DendronNodesProcessor implements INodesProcessor {
-    private readonly nodesPath: string;
-
-    constructor(nodesPath: string) {
-      this.nodesPath = nodesPath;
-    }
-
-    public async importNodesFromFiles(): Promise<VPNode.ImportResult[]> {
-      const results: VPNode.ImportResult[] = [];
-
-      // Read all md files in the nodes directory except 'root.md'
-      const filesToExclude: string[] = ['root.md', 'index.md', 'README.md'];
-      const files: string[] = await readdir(this.nodesPath);
-      const markdownFiles: string[] = files
-        .filter(file => extname(file) === '.md' && !filesToExclude.includes(file));
-      for (const file of markdownFiles) {
-        results.push(await this.importNodeFromFile(file));
-      }
-
-      return results;
-    }
-
-    public createVirtualNodes(nodes: VPNode.Imported[]): VPNode.Virtual[] {
-      const existingPaths = new Set(nodes.map(node => node.fileName));
-      const virtualNodesToCreate: VPNode.Virtual[] = [];
-
-      // Analyze all existing nodes to find missing intermediate levels
-      for (const node of nodes) {
-        const parts = node.fileName.split('.');
-
-        // Check each possible intermediate path
-        for (let i = 1; i < parts.length; i++) {
-          const intermediatePath = parts.slice(0, i + 1).join('.');
-
-          // If this intermediate path doesn't exist, we need to create a virtual node
-          if (!existingPaths.has(intermediatePath)) {
-            const lastPart = parts[i];
-            const level = i + 1;
-
-            // Create virtual node
-            const virtualNode: VPNode.Virtual = {
-              fileName: intermediatePath,
-              lastPart: lastPart,
-              uid: intermediatePath,
-              title: lastPart,
-              docEntrypoint: false,
-              order: 0,
-              level: level
-            };
-
-            virtualNodesToCreate.push(virtualNode);
-            existingPaths.add(intermediatePath);
-          }
-        }
-      }
-
-      return virtualNodesToCreate;
-    }
-
-    private async importNodeFromFile(fileNameWithExt: string): Promise<VPNode.ImportResult> {
-      const fileName: string = basename(fileNameWithExt, extname(fileNameWithExt));
-      const lastPart: string = fileName.split('.').pop() || '';
-      const filePath: string = path.join(this.nodesPath, fileNameWithExt);
-
-      // Read the file and extract front matter
-      let data: any = {};
-      try {
-        const fileContent = await readFile(filePath, 'utf-8');
-        ({ data } = matter(fileContent));
-      } catch (e) {
-        const fileReadErrorMessage: string = 'Error when reading file ' + (e instanceof Error ? e.message : String(e));
-        return {
-          fileName, lastPart, fileNameWithExt, filePath,
-          errors: [fileReadErrorMessage]
-        } as VPNode.Failed;
-      }
-
-      // Validate required fields and collect errors
-      const errors: string[] = [];
-      const prefix = 'Field missing: ';
-      if (!data.id) errors.push(`${prefix}id`);
-      if (!data.title) errors.push(`${prefix}title`);
-
-      let createdDate: Date | undefined;
-      if (!data.created) {
-        errors.push(`${prefix}created`);
-      } else {
-        createdDate = new Date(data.created);
-
-        if (isNaN(createdDate.getTime())) {
-          errors.push('Invalid created date');
-        }
-      }
-
-      let updatedDate: Date | undefined;
-      if (!data.updated) {
-        errors.push(`${prefix}updated`);
-      } else {
-        updatedDate = new Date(data.updated);
-
-        if (isNaN(updatedDate.getTime())) {
-          errors.push('Invalid updated date');
-        }
-      }
-
-      if (errors.length > 0) {
-        return { fileName, lastPart, fileNameWithExt, filePath, errors } as VPNode.Failed;
-      }
-
-      // return the imported node object
-      return {
-        fileName, lastPart, fileNameWithExt, filePath,
-        uid: data.id,
-        title: data.title,
-        createdTimestamp: data.created,
-        updatedTimestamp: data.updated,
-        docEntrypoint: DendronNodesProcessor.resolveDoc(data),
-        order: typeof data.nav_order === 'number' ? data.nav_order : 999,
-        level: fileName.split('.').length,
-        createdDate,
-        updatedDate,
-        link: '/' + fileName
-      } as VPNode.Imported;
-    }
-
-    private static resolveDoc(data: any): VPNode.DocEntryInfo | false {
-      if (!data.vpd // vpd is not defined
-        || typeof data.vpd !== 'object' // vpd is not an object
-        || !data.vpd.doc // vpd.doc is not defined
-        || (typeof data.vpd.doc !== 'object' && typeof data.vpd.doc !== 'boolean') // vpd.doc is not an expected type
-        || (typeof data.vpd.doc === 'boolean' && !data.vpd.doc)) { // vpd.doc explicitly false
-        return false;
-      }
-
-      // Default values
-      let leafLandingPoint: VPNode.LeafLandingPoint = 'first';
-      let collapseNonLandingChildren = false;
-
-      if (typeof data.vpd.doc === 'boolean' && data.vpd.doc) { // vpd.doc explicitly true
-        return { leafLandingPoint, collapseNonLandingChildren };
-      }
-
-      // from this on we know vpd.doc is an object
-
-      // Check for leafLandingPoint
-      if (data.vpd.doc.leafLandingPoint && VPNode.isLeafLandingPoint(data.vpd.doc.leafLandingPoint)) {
-        leafLandingPoint = data.vpd.doc.leafLandingPoint;
-      }
-
-      // Check for collapseOtherFirstLevels
-      if (data.vpd.doc.collapseOtherFirstLevels && typeof data.vpd.doc.collapseOtherFirstLevels === 'boolean') {
-        collapseNonLandingChildren = data.vpd.doc.collapseOtherFirstLevels;
-      }
-
-      return {
-        leafLandingPoint,
-        collapseNonLandingChildren
-      };
-    }
-  }
-
   export class ConfigBuilder {
     public readonly nav: DefaultTheme.NavItem[] = [];
     public readonly sidebar: DefaultTheme.SidebarMulti = {};
     public readonly linksVocabulary: Record<string, string> = {};
-    public readonly leafNodes: VPNode.Leaf[] = [];
+    public readonly leafNodes: VPNodeLeaf[] = [];
     public readonly srcExclude: string[] = [];
 
-    private readonly nodesImporter: INodesProcessor;
-    private readonly nodes: VPNode.Resolved[] = [];
+    private readonly nodesImporter: IVPNodeProcessor;
+    private readonly nodes: VPNodeResolved[] = [];
     private readonly sidebarLeafLinks: Record<string, string> = {};
 
-    constructor(fileparser: INodesProcessor) {
+    constructor(fileparser: IVPNodeProcessor) {
       this.nodesImporter = fileparser;
     }
 
@@ -192,16 +36,16 @@ export namespace VPLogic {
     }
 
     private async resolveNodes() {
-      const parsedNodes: VPNode.ImportResult[] = await this.nodesImporter.importNodesFromFiles();
+      const parsedNodes: VPNodeImportResult[] = await this.nodesImporter.importNodesFromFiles();
 
-      const failedNodes: VPNode.Failed[] = parsedNodes.filter(VPNode.isError);
+      const failedNodes: VPNodeFailed[] = parsedNodes.filter(isError);
       if (failedNodes.length > 0) {
         failedNodes.forEach(node => {
           console.error(`Error in node ${node.fileName}:`, node.errors.join(', '));
         });
       }
 
-      const successfulNodes: VPNode.Imported[] = parsedNodes.filter(VPNode.isImported);
+      const successfulNodes: VPNodeImported[] = parsedNodes.filter(isImported);
 
       if (successfulNodes.length === 0) {
         throw new Error('No valid nodes found to build the configuration.');
@@ -209,8 +53,8 @@ export namespace VPLogic {
 
       this.nodes.push(...successfulNodes);
 
-      // Create virtual nodes using the nodes importer
-      const virtualNodes = this.nodesImporter.createVirtualNodes(successfulNodes);
+      // Crea i virtual vpnode tramite la factory
+      const virtualNodes = VPNodeFactory.createVirtualNodes(successfulNodes);
       this.nodes.push(...virtualNodes);
     }
 
@@ -225,15 +69,15 @@ export namespace VPLogic {
     }
 
     private traverseUntilDocEntry(
-      node: VPNode.Resolved,
+      node: VPNodeResolved,
       breadcrumbs: string[]
     ): DefaultTheme.NavItem {
       breadcrumbs.push(node.title);
 
-      if (VPNode.isImported(node))
+      if (isImported(node))
         this.srcExclude.push(node.fileNameWithExt);
 
-      const childNodes: VPNode.Resolved[] = this.getChildsOrdered(node);
+      const childNodes: VPNodeResolved[] = this.getChildsOrdered(node);
 
       if (node.docEntrypoint) {
         const landingPoint = node.docEntrypoint.leafLandingPoint;
@@ -279,15 +123,15 @@ export namespace VPLogic {
     }
 
     private traverseAfterDocEntry(
-      node: VPNode.Resolved,
+      node: VPNodeResolved,
       navKey: string,
-      landingPoint: VPNode.LeafLandingPoint,
+      landingPoint: VPNodeLeafLandingPoint,
       breadcrumbs: string[]
     ): DefaultTheme.SidebarItem {
       const result = { key: node.fileName, text: node.title } as DefaultTheme.SidebarItem;
-      const childItems: VPNode.Resolved[] = this.getChildsOrdered(node);
+      const childItems: VPNodeResolved[] = this.getChildsOrdered(node);
 
-      if (VPNode.isImported(node) && childItems.length == 0) {
+      if (isImported(node) && childItems.length == 0) {
         // If the node has no children, it is a leaf node
         result.link = node.link;
         this.linksVocabulary[node.fileName] = node.title;
@@ -306,14 +150,14 @@ export namespace VPLogic {
             this.traverseAfterDocEntry(childItem, navKey, landingPoint, [...breadcrumbs]));
         });
 
-        if (VPNode.isImported(node))
+        if (isImported(node))
           this.srcExclude.push(node.fileNameWithExt);
       }
 
       return result;
     }
 
-    private getChildsOrdered(father: VPNode.Resolved): VPNode.Resolved[] {
+    private getChildsOrdered(father: VPNodeResolved): VPNodeResolved[] {
       const childs = this.nodes
         .filter(node => {
           const regex = new RegExp(`^${father.fileName}\\.([^\\.]+)$`);
